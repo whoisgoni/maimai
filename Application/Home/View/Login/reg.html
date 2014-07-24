@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title></title>
+
+<!-- Bootstrap -->
+<link href="{$Think.config.domain.public}bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+<script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="{$Think.config.domain.public}bootstrap/js/bootstrap.min.js"></script>
+<script>
+$(function(){
+    $("#verify_img,#verify_a").click(function(event){
+        $("#verify_img").attr("src","{$Think.config.domain.www}?m=Home&c=Login&a=verify");
+    });
+});
+</script>
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <form class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label class="col-md-2"></label>
+                    <div class="col-md-10">
+                        <h2>maimai</h2>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">邮箱地址</label>
+                    <div class="col-md-10">
+                        <input type="email" class="form-control" placeholder="" required autofocus >
+                        <span class="help-block">请输入一个你已拥有的邮箱地址</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">密码</label>
+                    <div class="col-md-10">
+                        <input type="password" class="form-control" placeholder="" required >
+                        <span class="help-block">6~16个字符，区分大小写</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">确认密码</label>
+                    <div class="col-md-10">
+                        <input type="password" class="form-control" placeholder="" required >
+                        <span class="help-block">请再次填写密码</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">验证码</label>
+                    <div class="col-md-6" >
+                        <input type="text" class="form-control" placeholder="" required >
+                        <span class="help-block">请填写图片中的字符，不区分大小写</span>
+                    </div>
+                    <div class="col-md-4">
+                        <img id="verify_img" class="img-responsive" src="{$Think.config.domain.www}?m=Home&c=Login&a=verify" style="cursor:pointer;" >
+                        <a id="verify_a" class="help-block" href="javascript:void(0);" style="color:#406eba;">看不清楚？换张图片</a>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2"></label>
+                    <div class="col-md-5">
+                        <button class="btn btn-primary btn-lg btn-block" type="submit">立即注册</button>
+                    </div>
+                    <div class="col-md-5">
+                        <a href="{$Think.config.domain.www}?m=Home&c=Login&a=index" class="btn btn-default btn-lg btn-block" role="button">返回登陆</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+</div>
+
+</body>
+</html>
