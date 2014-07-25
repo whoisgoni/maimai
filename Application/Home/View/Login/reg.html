@@ -7,22 +7,211 @@
 <title></title>
 
 <!-- Bootstrap -->
-<link href="{$Think.config.domain.public}bootstrap/css/bootstrap.min.css" rel="stylesheet">
-
+<link href="{:C('DOMAIN.PUBLIC')}bootstrap/css/bootstrap.min.css" rel="stylesheet">
 <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 <!--[if lt IE 9]>
-<script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-<script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+<script src="{:C('DOMAIN.PUBLIC')}common/js//html5shiv.min.js"></script>
+<script src="{:C('DOMAIN.PUBLIC')}common/js/respond.min.js"></script>
 <![endif]-->
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+<script src="{:C('DOMAIN.PUBLIC')}common/js/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="{$Think.config.domain.public}bootstrap/js/bootstrap.min.js"></script>
+<script src="{:C('DOMAIN.PUBLIC')}bootstrap/js/bootstrap.min.js"></script>
+
 <script>
+function input_change(label,type,help1,help2){
+    var form_group = $(label).parents(".form-group");
+    var glyphicon = $(label).nextAll(".glyphicon");
+    var help_block = $(label).nextAll(".help-block");
+    $(form_group).removeClass('has-success').removeClass('has-error');
+    $(glyphicon).removeClass('glyphicon-ok').removeClass('glyphicon-remove').removeClass('glyphicon-edit');
+    $(help_block).html('&nbsp;');
+    var help_text = {
+        email:{
+            a:'请输入一个你已拥有的邮箱地址',
+            b:'邮箱地址不合法',
+            c:'&nbsp',
+        },
+        password:{
+            a:'请输入6~16个字符（仅能使用数字、字母或下划线“_”）',
+            b:'密码不合法，请输入6~16个字符（仅能使用数字、字母或下划线“_”）',
+            c:'&nbsp',
+        },
+        confirm_password:{
+            a:'请再次输入密码',
+            b:'两次输入的密码不一致',
+            c:'&nbsp',
+        },
+        verify:{
+            a:'请输入图片中的字符，不区分大小写',
+            b:'输入的图片中的字符不正确！',
+            c:'&nbsp',
+        },
+    };
+    if(type == 1){  //获取焦点时
+        $(form_group).removeClass('has-success').removeClass('has-error');
+        $(glyphicon).removeClass('glyphicon-ok').removeClass('glyphicon-remove').addClass('glyphicon-edit');
+        $(help_block).html(help_text[''+help1+''][''+help2+'']);
+    }else if(type == 2){  // 失去焦点为空时
+        $(form_group).removeClass('has-success').removeClass('has-error');
+        $(glyphicon).removeClass('glyphicon-ok').removeClass('glyphicon-remove').removeClass('glyphicon-edit');
+        $(help_block).html(help_text[''+help1+''][''+help2+'']);
+    }else if(type == 3){  //失去焦点不合法时
+        $(form_group).removeClass('has-success').addClass('has-error')
+        $(glyphicon).removeClass('glyphicon-ok').removeClass('glyphicon-edit').addClass('glyphicon-remove');
+        $(help_block).html(help_text[''+help1+''][''+help2+'']);
+    }else if(type == 4){  //失去焦点合法时
+        $(form_group).removeClass('has-error').addClass('has-success')
+        $(glyphicon).removeClass('glyphicon-remove').removeClass('glyphicon-edit').addClass('glyphicon-ok');
+        $(help_block).html(help_text[''+help1+''][''+help2+'']);
+    }
+
+}
+function check_email(){
+    var label = $("input[name='email']");
+    var text = $(label).val();
+    if(text == ''){
+        input_change($(label),3,'email','a');
+        return 0;
+    }
+    var regular=/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(text);
+    if(!regular){
+        input_change($(label),3,'email','b');
+        return 0;
+    }
+    return 1;
+}
+function check_password(){
+    var label = $("input[name='password']");
+    var text = $(label).val();
+    if(text == ''){
+        input_change($(label),3,'password','a');
+        return 0;
+    }
+    var regular=/^\w{6,16}$/.test(text);
+    if(!regular){
+        input_change($(label),3,'password','b');
+        return 0;
+    }
+    return 1;
+}
+function check_confirm_password(){
+    var label = $("input[name='confirm_password']");
+    var text = $(label).val();
+    if(text == ''){
+        input_change($(label),3,'confirm_password','a');
+        return 0;
+    }
+    var password = $("input[name='password']").val();
+    var text = $(label).val();
+    if(password != text){
+        input_change($(label),3,'confirm_password','b');
+        return 0;
+    }
+    return 1;
+}
+function check_verify(){
+    var label = $("input[name='verify']");
+    var text = $(label).val();
+    if(text == ''){
+        input_change($(label),3,'verify','a');
+        return 0;
+    }
+    if(text.length != 5){
+        input_change($(label),3,'verify','b');
+        $("#verify_img").click();
+        return 0;
+    }
+    return 1;
+    /*$.post("{:U('check_verify')}", {code:text}, function(msg){
+        if(msg.status != 1){
+            input_change($(label),3,'verify','b');
+            $("#verify_img").click();
+            return 0;
+        }
+        return 1;
+    }, "json");
+    */
+}
 $(function(){
+    $("form").submit(function(){
+        var is_email = check_email();
+        var is_password = check_password();
+        var is_confirm_password = check_confirm_password();
+        var is_verify = check_verify();
+        if((is_email == 1) && (is_password == 1) && (is_confirm_password == 1) && (is_verify == 1)){
+            $.post($(this).attr("action"), $(this).serialize(), success, "json");
+            return false;
+            function success(msg){
+                console.log(msg);
+            }
+        }
+        return false;
+    })
+    $("input[name='email']").focus(function(){
+        input_change($(this),1,'email','a');
+    }).blur(function(){
+        var text = $(this).val();
+        if(text == ''){
+            input_change($(this),2,'email','c');
+        }else{
+            var regular=/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(text);
+            if(regular){
+                input_change($(this),4,'email','c');
+            }else{
+                input_change($(this),3,'email','b');
+            }
+        }
+    });
+    $("input[name='password']").focus(function(){
+        input_change($(this),1,'password','a');
+    }).blur(function(){
+        var text = $(this).val();
+        if(text == ''){
+            input_change($(this),2,'password','c');
+        }else{
+            var regular=/^\w{6,16}$/.test(text);
+            if(regular){
+                input_change($(this),4,'password','c');
+            }else{
+                input_change($(this),3,'password','b');
+            }
+        }
+    });
+    $("input[name='confirm_password']").focus(function(){
+        input_change($(this),1,'confirm_password','a');
+    }).blur(function(){
+        var text = $(this).val();
+        if(text == ''){
+            input_change($(this),2,'confirm_password','c');
+        }else{
+            var password = $("input[name='password']").val();
+            var text = $(this).val();
+            if(password == text){
+                input_change($(this),4,'confirm_password','c');
+            }else{
+                input_change($(this),3,'confirm_password','b');
+            }
+        }
+    });
+    $("input[name='verify']").focus(function(){
+        input_change($(this),1,'verify','a');
+    }).blur(function(){
+        var text = $(this).val();
+        if(text == ''){
+            input_change($(this),2,'verify','c');
+        }else{
+            var text = $(this).val();
+            if(text.length == 5){
+                input_change($(this),4,'verify','c');
+            }else{
+                input_change($(this),3,'verify','b');
+            }
+        }
+    });
     $("#verify_img,#verify_a").click(function(event){
-        $("#verify_img").attr("src","{$Think.config.domain.www}?m=Home&c=Login&a=verify");
+        $("#verify_img").attr("src","{:U('Home/Login/verify')}");
     });
 });
 </script>
@@ -33,6 +222,7 @@ $(function(){
     <div class="row">
         <div class="col-md-3"></div>
         <div class="col-md-6">
+        <form name="myform" class="form-horizontal" role="form" action="{:U('reg')}" method="post" enctype="multipart/form-data">
             <form class="form-horizontal" role="form">
                 <div class="form-group">
                     <label class="col-md-2"></label>
@@ -40,35 +230,39 @@ $(function(){
                         <h2>maimai</h2>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group has-feedback">
                     <label class="col-md-2 control-label">邮箱地址</label>
                     <div class="col-md-10">
-                        <input type="email" class="form-control" placeholder="" required autofocus >
-                        <span class="help-block">请输入一个你已拥有的邮箱地址</span>
+                        <input name="email" type="text" class="form-control" placeholder="" autofocus >
+                        <span class="glyphicon form-control-feedback"></span>
+                        <span class="help-block">&nbsp;</span>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group has-feedback">
                     <label class="col-md-2 control-label">密码</label>
                     <div class="col-md-10">
-                        <input type="password" class="form-control" placeholder="" required >
-                        <span class="help-block">6~16个字符，区分大小写</span>
+                        <input name="password" type="password" class="form-control" placeholder="" >
+                        <span class="glyphicon form-control-feedback"></span>
+                        <span class="help-block">&nbsp;</span>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group has-feedback">
                     <label class="col-md-2 control-label">确认密码</label>
                     <div class="col-md-10">
-                        <input type="password" class="form-control" placeholder="" required >
-                        <span class="help-block">请再次填写密码</span>
+                        <input name="confirm_password" type="password" class="form-control" placeholder="" >
+                        <span class="glyphicon form-control-feedback"></span>
+                        <span class="help-block">&nbsp;</span>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group has-feedback">
                     <label class="col-md-2 control-label">验证码</label>
                     <div class="col-md-6" >
-                        <input type="text" class="form-control" placeholder="" required >
-                        <span class="help-block">请填写图片中的字符，不区分大小写</span>
+                        <input name="verify" type="text" class="form-control" placeholder="" >
+                        <span class="glyphicon form-control-feedback"></span>
+                        <span class="help-block">&nbsp;</span>
                     </div>
                     <div class="col-md-4">
-                        <img id="verify_img" class="img-responsive" src="{$Think.config.domain.www}?m=Home&c=Login&a=verify" style="cursor:pointer;" >
+                        <img id="verify_img" class="img-responsive" src="{:U('Home/Login/verify')}" style="cursor:pointer;" >
                         <a id="verify_a" class="help-block" href="javascript:void(0);" style="color:#406eba;">看不清楚？换张图片</a>
                     </div>
                 </div>
@@ -78,7 +272,7 @@ $(function(){
                         <button class="btn btn-primary btn-lg btn-block" type="submit">立即注册</button>
                     </div>
                     <div class="col-md-5">
-                        <a href="{$Think.config.domain.www}?m=Home&c=Login&a=index" class="btn btn-default btn-lg btn-block" role="button">返回登陆</a>
+                        <a href="{:U('Home/Login/index')}" class="btn btn-default btn-lg btn-block" role="button">返回登陆</a>
                     </div>
                 </div>
             </form>
