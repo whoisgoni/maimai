@@ -12,14 +12,26 @@ class LoginController extends Controller {
     public function reg(){
         if(IS_POST){
             //验证注册信息是否有效
-            $check_msg = A('Common/Account')->check_reg_info($_POST);
+            $check_msg = A('Common/Account')->check_reg_info($_POST['email'], $_POST['password'], $_POST['confirm_password'], $_POST['verify']);
             if($check_msg['errno'] !== 0){
-                $this->error($check_msg['msg']);
+                $return_msg = array(
+                    'errno' => 1,
+                    'msg' => $check_msg['msg'],
+                );
+                $this->ajaxReturn($return_msg);
             }
             //注册入库
-
-            var_dump($check_msg);
-            exit;
+            $insert_msg = A('Common/Account')->insert_reg_data($_POST['email'],$_POST['password']);
+            if($insert_msg !== true){
+                $return_msg = array(
+                    'errno' => 2,        
+                );
+                $this->ajaxReturn($return_msg);
+            }
+            $return_msg = array(
+                'errno' => 0,
+            );
+            $this->ajaxReturn($return_msg);
         }
         $this->display();
     }

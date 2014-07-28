@@ -172,19 +172,37 @@ function explain_errno(msg){
 }
 $(function(){
     $("form").submit(function(){
+        $("button[type='submit']").addClass('disabled').text("注册中...");
         var js_msg  = check_post();
         if(js_msg.errno != 0){
             explain_errno(js_msg.msg);
+            $("input[name='verify']").val('');
+            $("button[type='submit']").removeClass('disabled').text("立即注册");
             return false;
         }
         $.post($(this).attr("action"), $(this).serialize(), success, "json");
         return false;
         function success(php_msg){
-            if(php_msg.status != 1){
-                explain_errno(php_msg.info);
+            if(php_msg.errno == 0){
+                var jump_url = "{:U('index')}"
+                $("#submit_btn_div").hide();
+                $("#submit_alert_div").find(".alert").addClass('alert-success').html('注册成功！3秒后<a href="'+jump_url+'" class="alert-link">跳转</a>至登陆页面。');
+                $("#submit_alert_div").show();
+                setTimeout("location.href='"+jump_url+"'",3000);
                 return false;
             }
-            return true;
+            if(php_msg.errno == 1){
+                explain_errno(php_msg.msg);
+                $("input[name='verify']").val('');
+                $("button[type='submit']").removeClass('disabled').text("立即注册");
+                return false;
+            }
+            var jump_url = "{:U('reg')}";
+            $("#submit_btn_div").hide();
+            $("#submit_alert_div").find(".alert").addClass('alert-danger').html('注册失败！请于页面<a href="'+jump_url+'" class="alert-link">刷新</a>后重新填写信息。');
+            $("#submit_alert_div").show();
+            setTimeout("location.href='"+jump_url+"'",3000);
+            return false;
         }
     })
 
@@ -305,13 +323,19 @@ $(function(){
                         <a id="verify_a" class="help-block" href="javascript:void(0);" style="color:#406eba;">看不清楚？换张图片</a>
                     </div>
                 </div>
-                <div class="form-group">
+                <div id="submit_btn_div" class="form-group">
                     <label class="col-md-2"></label>
                     <div class="col-md-5">
                         <button class="btn btn-primary btn-lg btn-block" type="submit">立即注册</button>
                     </div>
                     <div class="col-md-5">
                         <a href="{:U('Home/Login/index')}" class="btn btn-default btn-lg btn-block" role="button">返回登陆</a>
+                    </div>
+                </div>
+                <div id="submit_alert_div" class="form-group" style="display:none;">
+                    <label class="col-md-2"></label>
+                    <div class="col-md-10">
+                        <div class="alert alert-success" role="alert"></div>
                     </div>
                 </div>
             </form>

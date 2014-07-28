@@ -8,15 +8,14 @@ class AccountController extends Controller {
             $this->error('未登录',C('DOMAIN.WWW').'?m=Home&c=Login&a=index');
         }
     }
-    //验证注册信息是否有效
     /*
+     *  验证注册信息是否有效
+     *
      *  params:
-            $reg_data => array(
-                'email'             => '',
-                'password'          => '',
-                'confirm_password'  => '',
-                'verify'            => '',
-            )
+            $email = ''
+            $password = ''
+            $confirm_password = ''
+            $verify = ''
      *  return: 
             array(
                 'errno' => 0,                   // 0合法 !0不合法
@@ -28,11 +27,11 @@ class AccountController extends Controller {
                 ),
             )
      */
-    public function check_reg_info($reg_data){
-        $email = $reg_data['email'] ? $reg_data['email'] : '';
-        $password = $reg_data['password'] ? $reg_data['password'] : '';
-        $confirm_password = $reg_data['confirm_password'] ? $reg_data['confirm_password'] : '';
-        $verify = $reg_data['verify'] ? $reg_data['verify'] : '';
+    public function check_reg_info($email, $password, $confirm_password, $verify){
+        $email = $email ? $email : '';
+        $password = $password ? $password : '';
+        $confirm_password = $confirm_password ? $confirm_password : '';
+        $verify = $verify ? $verify : '';
         //判断email（0合法 1空 2格式错误 3数据库已存在）
         $email_errno = 0;
         if($email == ''){
@@ -99,5 +98,36 @@ class AccountController extends Controller {
                 'verify'            => $verify_errno,
             ),
         );
+    }
+
+    /*
+     *  注册通行证
+     *
+     *  params:
+            $email = ''
+            $password = ''
+     *  return: 
+            bool    // true:注册成功 false:注册失败 
+     */
+    public function insert_reg_data($email, $password){
+        $email = $email ? $email : '';
+        $password = $password ? $password : '';
+        $time = NOW_TIME;
+        $ip = get_client_ip();
+        
+        $password = md5(md5($password,true).sha1($password,true));
+        $ip = explode('.', $ip); 
+        $ip = array_reverse($ip); 
+        $ipnum = 0; 
+        for($i=0,$j=count($ip); $i<$j; $i++){ 
+            $ipnum += $ip[$i] * pow(256, $i); 
+        }
+
+        $sql = "INSERT INTO `account` (`email`,`password`,`reg_time`,`reg_ip`) VALUES ('{$email}','{$password}','{$time}','{$ipnum}')";
+        $res = D()->execute($sql);
+        if($res !== 1){
+            return false;
+        }
+        return true;
     }
 }
