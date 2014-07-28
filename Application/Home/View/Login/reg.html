@@ -20,10 +20,11 @@
 <script src="{:C('DOMAIN.PUBLIC')}bootstrap/js/bootstrap.min.js"></script>
 
 <script>
-function input_change(label,type,help1,help2){
-    var form_group = $(label).parents(".form-group");
-    var glyphicon = $(label).nextAll(".glyphicon");
-    var help_block = $(label).nextAll(".help-block");
+function input_change(name,type,help){
+    var label = $("input[name='"+name+"']");
+    var form_group = label.parents(".form-group");
+    var glyphicon = label.nextAll(".glyphicon");
+    var help_block = label.nextAll(".help-block");
     $(form_group).removeClass('has-success').removeClass('has-error');
     $(glyphicon).removeClass('glyphicon-ok').removeClass('glyphicon-remove').removeClass('glyphicon-edit');
     $(help_block).html('&nbsp;');
@@ -52,161 +53,199 @@ function input_change(label,type,help1,help2){
     if(type == 1){  //获取焦点时
         $(form_group).removeClass('has-success').removeClass('has-error');
         $(glyphicon).removeClass('glyphicon-ok').removeClass('glyphicon-remove').addClass('glyphicon-edit');
-        $(help_block).html(help_text[''+help1+''][''+help2+'']);
+        $(help_block).html(help_text[''+name+''][''+help+'']);
     }else if(type == 2){  // 失去焦点为空时
         $(form_group).removeClass('has-success').removeClass('has-error');
         $(glyphicon).removeClass('glyphicon-ok').removeClass('glyphicon-remove').removeClass('glyphicon-edit');
-        $(help_block).html(help_text[''+help1+''][''+help2+'']);
+        $(help_block).html(help_text[''+name+''][''+help+'']);
     }else if(type == 3){  //失去焦点不合法时
         $(form_group).removeClass('has-success').addClass('has-error')
         $(glyphicon).removeClass('glyphicon-ok').removeClass('glyphicon-edit').addClass('glyphicon-remove');
-        $(help_block).html(help_text[''+help1+''][''+help2+'']);
+        $(help_block).html(help_text[''+name+''][''+help+'']);
     }else if(type == 4){  //失去焦点合法时
         $(form_group).removeClass('has-error').addClass('has-success')
         $(glyphicon).removeClass('glyphicon-remove').removeClass('glyphicon-edit').addClass('glyphicon-ok');
-        $(help_block).html(help_text[''+help1+''][''+help2+'']);
+        $(help_block).html(help_text[''+name+''][''+help+'']);
     }
 
 }
-function check_email(){
-    var label = $("input[name='email']");
-    var text = $(label).val();
-    if(text == ''){
-        input_change($(label),3,'email','a');
-        return 0;
-    }
-    var regular=/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(text);
-    if(!regular){
-        input_change($(label),3,'email','b');
-        return 0;
-    }
-    return 1;
-}
-function check_password(){
-    var label = $("input[name='password']");
-    var text = $(label).val();
-    if(text == ''){
-        input_change($(label),3,'password','a');
-        return 0;
-    }
-    var regular=/^\w{6,16}$/.test(text);
-    if(!regular){
-        input_change($(label),3,'password','b');
-        return 0;
-    }
-    return 1;
-}
-function check_confirm_password(){
-    var label = $("input[name='confirm_password']");
-    var text = $(label).val();
-    if(text == ''){
-        input_change($(label),3,'confirm_password','a');
-        return 0;
-    }
+function check_post(){
+    var email = $("input[name='email']").val();
     var password = $("input[name='password']").val();
-    var text = $(label).val();
-    if(password != text){
-        input_change($(label),3,'confirm_password','b');
-        return 0;
+    var confirm_password = $("input[name='confirm_password']").val();
+    var verify = $("input[name='verify']").val();
+    var email_errno = 0;
+    if(email == ''){
+        email_errno = 1;
     }
-    return 1;
-}
-function check_verify(){
-    var label = $("input[name='verify']");
-    var text = $(label).val();
-    if(text == ''){
-        input_change($(label),3,'verify','a');
-        return 0;
-    }
-    if(text.length != 5){
-        input_change($(label),3,'verify','b');
-        $("#verify_img").click();
-        return 0;
-    }
-    return 1;
-    /*$.post("{:U('check_verify')}", {code:text}, function(msg){
-        if(msg.status != 1){
-            input_change($(label),3,'verify','b');
-            $("#verify_img").click();
-            return 0;
+    if(email_errno == 0){
+        var email_regular = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(email);
+        if(!email_regular){
+            email_errno = 2 
         }
-        return 1;
-    }, "json");
-    */
+    }
+    var password_errno = 0;
+    if(password == ''){
+        password_errno = 1;
+    }
+    if(password_errno == 0){
+        var password_regular = /^\w{6,16}$/.test(password);
+        if(!password_regular){
+            password_errno = 2 
+        }
+    }
+    var confirm_password_errno = 0;
+    if(confirm_password == ''){
+        confirm_password_errno = 1;
+    }
+    if(confirm_password_errno == 0){
+        if(confirm_password != password){
+            confirm_password_errno = 2;
+        }
+    }
+    var verify_errno = 0;
+    if(verify == ''){
+        verify_errno = 1;
+    }
+    if(verify_errno == 0){
+       if(verify.length != 5){
+           verify_errno = 2;
+       }
+    }
+    var errno = 0;
+    if((email_errno != 0) || (password_errno != 0) || (confirm_password_errno != 0) || (verify_errno != 0)){
+        errno = 1;
+    }
+    var res = {
+        'errno' : errno,
+        'msg'   : {
+            'email'             : email_errno,
+            'password'          : password_errno,
+            'confirm_password'  : confirm_password_errno,
+            'verify'            : verify_errno,
+        },
+    };
+    return res;
+}
+function explain_errno(msg){
+    switch(msg.email){
+        case 0:
+            input_change('email',4,'c');
+            break;
+        case 1:
+            input_change('email',3,'a');
+            break;
+        default:
+            input_change('email',3,'b');
+    }
+    switch(msg.password){
+        case 0:
+            input_change('password',4,'c');
+            break;
+        case 1:
+            input_change('password',3,'a');
+            break;
+        default:
+            input_change('password',3,'b');
+    }
+    switch(msg.confirm_password){
+        case 0:
+            input_change('confirm_password',4,'c');
+            break;
+        case 1:
+            input_change('confirm_password',3,'a');
+            break;
+        default:
+            input_change('confirm_password',3,'b');
+    }
+    switch(msg.verify){
+        case 0:
+            input_change('verify',4,'c');
+            break;
+        case 1:
+            input_change('verify',3,'a');
+            break;
+        default:
+            input_change('verify',3,'b');
+    }
+
 }
 $(function(){
     $("form").submit(function(){
-        var is_email = check_email();
-        var is_password = check_password();
-        var is_confirm_password = check_confirm_password();
-        var is_verify = check_verify();
-        if((is_email == 1) && (is_password == 1) && (is_confirm_password == 1) && (is_verify == 1)){
-            $.post($(this).attr("action"), $(this).serialize(), success, "json");
+        var js_msg  = check_post();
+        if(js_msg.errno != 0){
+            explain_errno(js_msg.msg);
             return false;
-            function success(msg){
-                console.log(msg);
-            }
         }
+        $.post($(this).attr("action"), $(this).serialize(), success, "json");
         return false;
+        function success(php_msg){
+            if(php_msg.status != 1){
+                explain_errno(php_msg.info);
+                return false;
+            }
+            return true;
+        }
     })
+
     $("input[name='email']").focus(function(){
-        input_change($(this),1,'email','a');
+        input_change('email',1,'a');
     }).blur(function(){
         var text = $(this).val();
         if(text == ''){
-            input_change($(this),2,'email','c');
+            input_change('email',2,'c');
         }else{
             var regular=/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(text);
             if(regular){
-                input_change($(this),4,'email','c');
+                input_change('email',4,'c');
             }else{
-                input_change($(this),3,'email','b');
+                input_change('email',3,'b');
             }
         }
     });
     $("input[name='password']").focus(function(){
-        input_change($(this),1,'password','a');
+        input_change('password',1,'a');
     }).blur(function(){
         var text = $(this).val();
         if(text == ''){
-            input_change($(this),2,'password','c');
+            input_change('password',2,'c');
         }else{
             var regular=/^\w{6,16}$/.test(text);
             if(regular){
-                input_change($(this),4,'password','c');
+                input_change('password',4,'c');
             }else{
-                input_change($(this),3,'password','b');
+                input_change('password',3,'b');
             }
         }
     });
     $("input[name='confirm_password']").focus(function(){
-        input_change($(this),1,'confirm_password','a');
+        input_change('confirm_password',1,'a');
     }).blur(function(){
         var text = $(this).val();
         if(text == ''){
-            input_change($(this),2,'confirm_password','c');
+            input_change('confirm_password',2,'c');
         }else{
             var password = $("input[name='password']").val();
             var text = $(this).val();
             if(password == text){
-                input_change($(this),4,'confirm_password','c');
+                input_change('confirm_password',4,'c');
             }else{
-                input_change($(this),3,'confirm_password','b');
+                input_change('confirm_password',3,'b');
             }
         }
     });
     $("input[name='verify']").focus(function(){
-        input_change($(this),1,'verify','a');
+        input_change('verify',1,'a');
     }).blur(function(){
         var text = $(this).val();
         if(text == ''){
-            input_change($(this),2,'verify','c');
+            input_change('verify',2,'c');
         }else{
             var text = $(this).val();
             if(text.length == 5){
-                input_change($(this),4,'verify','c');
+                input_change('verify',4,'c');
             }else{
-                input_change($(this),3,'verify','b');
+                input_change('verify',3,'b');
             }
         }
     });

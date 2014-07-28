@@ -13,6 +13,12 @@ class LoginController extends Controller {
         if(IS_POST){
             //验证注册信息是否有效
             $check_msg = A('Common/Account')->check_reg_info($_POST);
+            if($check_msg['errno'] !== 0){
+                $this->error($check_msg['msg']);
+            }
+            //注册入库
+
+            var_dump($check_msg);
             exit;
         }
         $this->display();
