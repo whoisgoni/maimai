@@ -1,0 +1,104 @@
+<extend name="Common:base" />
+<block name="script">
+    <!-- jqueryui --> 
+    <script type="text/javascript" src="{:C('DOMAIN.PUBLIC')}jquery-ui-1.9.2.custom/js/jquery-ui-1.9.2.custom.min.js"></script>
+    <script type="text/javascript" src="{:C('DOMAIN.PUBLIC')}jquery-ui-1.9.2.custom/development-bundle/ui/i18n/jquery.ui.datepicker-zh-CN.js"></script>
+    <link rel="stylesheet" href="{:C('DOMAIN.PUBLIC')}jquery-ui-1.9.2.custom/development-bundle/themes/base/jquery.ui.all.css">
+    <!-- /jqueryui -->
+    <!-- fileupload -->          
+    <script src="{:C('DOMAIN.PUBLIC')}fileupload/js/vendor/jquery.ui.widget.js"></script>
+    <script src="{:C('DOMAIN.PUBLIC')}fileupload/js/jquery.iframe-transport.js"></script>
+    <script src="{:C('DOMAIN.PUBLIC')}fileupload/js/jquery.fileupload.js"></script>
+    <!-- /fileupload -->
+    <script>
+    $(function() {
+        $('#updimg').fileupload({
+            url : "{:U('upload')}",
+            dataType : 'json',
+            progressall: function (e, data) {
+                var progress = parseInt(data.loaded / data.total * 100, 10);
+                $("#updimg_msg").text(progress + '%');
+            },
+            done: function (e, data) {
+                if(data.result.errno == 0){
+                    var value = data.result.subname + data.result.savename;
+                    var src = data.result.rootpath + data.result.savepath + value;
+                    var html = '<div class="img-thumbnail">';
+                    html    +=     '<button type="button" class="close" data-dismiss="alert" style="margin:-5px -2px 0 5px;">';
+                    html    +=         '<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>';
+                    html    +=     '</button>';
+                    html    +=     '<img src="'+src+'" style="height:100px;"><input name="img[]" type="hidden" value="'+value+'">';
+                    html    += '</div>';
+                    $("#updimg_box").append(html);
+                }
+                //拖拽排序
+                $( "#updimg_box" ).sortable({opacity:0.6,tolerance:'pointer'});
+                $( "#updimg_box" ).disableSelection();
+                //拖拽排序end
+            }
+        });
+    });
+    </script>
+</block>
+<block name="location">
+    <ol class="breadcrumb"> 
+        <li><strong>位置：</strong></li>
+        <li><a href="{:U('Index/index')}">首页</a></li>
+        <li><a href="{:U('index')}">店铺列表</a></li>
+        <li class="active">添加店铺</li>
+        <a class="btn btn-primary btn-xs" href="{:U('add')}" role="button" style="float:right;">添加新店铺</a>
+    </ol>
+</block>
+<block name="main">
+    <div class="panel panel-default">
+        <div class="panel-heading"></div>
+        <div class="panel-body">
+            <form class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label class="col-md-2 control-label">店铺名称</label>
+                    <div class="col-md-10">
+                        <input name="name" type="text" class="form-control" >
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">店铺描述</label>
+                    <div class="col-md-10">
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">店铺图片</label>
+                    <div class="col-md-10">
+                        <div style="margin-bottom:10px;">
+                            <input id="updimg" type="file" multiple style="display:none;">
+                            <button type="button" class="btn btn-default btn-sm" onclick="$('#updimg').click();">
+                                <span class="glyphicon glyphicon-cloud-upload"></span>
+                                点击上传
+                            </button>
+                        </div>
+                        <div id="updimg_box" class="pull-left"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">店铺状态</label>
+                    <div class="col-md-10">
+                        <label class="radio-inline">
+                            <input name="status" type="radio" value="3" checked >
+                            <span class="text-success">立即开启</span>
+                        </label>
+                        <label class="radio-inline">
+                            <input name="status" type="radio" value="2" >
+                            <span class="text-warning">暂时关闭</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-2"></div>
+                    <div class="col-md-10">
+                        <button class="btn btn-primary" type="submit">提 交</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</block>

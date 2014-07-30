@@ -1,0 +1,65 @@
+<extend name="Common:base" />
+<block name="location">
+    <ol class="breadcrumb"> 
+        <li><strong>位置：</strong></li>
+        <li><a href="{:U('Index/index')}">首页</a></li>
+        <li class="active">店铺列表</li>
+        <a class="btn btn-primary btn-xs" href="{:U('add')}" role="button" style="float:right;">添加新店铺</a>
+    </ol>
+</block>
+<block name="main">
+    <div class="panel panel-default">
+        <div class="panel-heading"></div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                    <th>#</th>
+                    <th>店铺名称</th>
+                    <th>添加时间</th>
+                    <th>状态</th>
+                    <th>操作
+                    </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <volist name="list" id="vo">
+                    <tr>
+                        <td>{$vo.id}</td>
+                        <td>{$vo.name}</td>
+                        <td>{$vo.add_time|date="Y-m-d",###}</td>
+                        <td>
+                            <switch name="$vo['status']">
+                            <case value="3">开启</case> 
+                            <case value="2">关闭</case> 
+                            <default/>异常
+                            </switch>
+                        </td>
+                        <td>
+
+                        </td>
+                    </tr>
+                    </volist>
+                    <tr>
+                    <td>1</td>
+                    <td>Mark</td>
+                    <td>Otto</td>
+                    <td>@mdo</td>
+                    </tr>
+                    <tr>
+                    <td>2</td>
+                    <td>Jacob</td>
+                    <td>T321321321321321312321321hornton</td>
+                    <td>@fat</td>
+                    </tr>
+                    <tr>
+                    <td>3</td>
+                    <td>Larry</td>
+                    <td>the Bird</td>
+                    <td>@twitter</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</block>

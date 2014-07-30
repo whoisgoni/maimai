@@ -7,8 +7,14 @@ return array(
     'URL_MODEL'     => 0,
 
     //域名
-    'DOMAIN'            => array(
+    'DOMAIN'        => array(
         'WWW'       => 'http://www.maimai.g/',
-        'PUBLIC'    => 'http://www.maimai.g/Public/',
+        'PUBLIC'    => 'http://www.maimai.g/public/',
+        'UPLOAD'    => 'http://www.maimai.g/upload/',
     ),
+    //路径
+    'PATH'          => array(
+        'UPLOAD'    =>  __REAL_ROOT__ . __DS__ . 'upload' . __DS__,   
+    ),
+
 );
