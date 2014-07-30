@@ -6,15 +6,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bootstrap 101 Template</title>
 
-<!-- Bootstrap -->
-<link href="{$Think.config.DOMAIN.PUBLIC}bootstrap/css/bootstrap.min.css" rel="stylesheet">
-
+<link href="{:C('DOMAIN.PUBLIC')}bootstrap/css/bootstrap.min.css" rel="stylesheet">
 <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 <!--[if lt IE 9]>
-<script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-<script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+<script src="{:C('DOMAIN.PUBLIC')}common/js//html5shiv.min.js"></script>
+<script src="{:C('DOMAIN.PUBLIC')}common/js/respond.min.js"></script>
 <![endif]-->
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="{:C('DOMAIN.PUBLIC')}common/js/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="{:C('DOMAIN.PUBLIC')}bootstrap/js/bootstrap.min.js"></script>
+
+<script>
+$(function(){
+    $("form").submit(function(){
+        $("button[type='submit']").addClass('disabled').text("登陆中...");
+        $.post($(this).attr("action"), $(this).serialize(), success, "json");
+        return false;
+        function success(msg){
+            if(msg.errno == 0){
+                var jump_url = "{:U('Home/Index/index')}"
+                setTimeout("location.href='"+jump_url+"'",0);
+            }else{
+                if(msg.errno == 1){
+                    $("#login_msg").html('请输入邮箱地址');
+                }else if(msg.errno == 2){
+                    $("#login_msg").html('请输入密码');
+                }else if((msg.errno == 3) || (msg.errno == 4)){
+                    $("#login_msg").html('邮箱或密码错误');
+                }else{
+                    $("#login_msg").html('登陆失败');
+                }
+                $("button[type='submit']").removeClass('disabled').text("登 陆");
+            }
+        }
+    });
+
+});
+</script>
 </head>
 <body>
 
@@ -22,36 +52,29 @@
     <div class="row">
         <div class="col-md-4"></div>
         <div class="col-md-4">
-            <form class="form-horizontal" role="form">
+            <form name="myform" class="form-horizontal" role="form" action="{:U('index')}" method="post" enctype="multipart/form-data"> 
+                <div class="page-header">
+                    <h2>maimai <small>maimai</small></h2>
+                </div>
+                <p id="login_msg" class="text-danger text-right" style="margin-top:-10px;">&nbsp;</p>
                 <div class="form-group">
                     <div class="col-md-12">
-                        <h2>maimai</h2>
+                        <input name="email" type="text" class="form-control input-lg" placeholder="邮箱地址" autofocus >
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-md-12">
-                        <input type="email" class="form-control" placeholder="邮箱地址" required autofocus >
+                        <input name="password" type="password" class="form-control input-lg" placeholder="密码" >
                     </div>
                 </div>
-                <div class="form-group">
+                <div id="submit_btn_div" class="form-group">
                     <div class="col-md-12">
-                        <input type="password" class="form-control" placeholder="密码" required >
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-6" >
-                        <input type="text" class="form-control" placeholder="验证码" required >
-                    </div>
-                    <div class="col-md-6">
-                        <img class="img-responsive" src="{$Think.config.domain.www}?m=Home&c=Login&a=verify" >
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-6">
                         <button class="btn btn-primary btn-lg btn-block" type="submit">登  陆</button>
                     </div>
-                    <div class="col-md-6">
-                        <a href="{$Think.config.domain.www}?m=Home&c=Login&a=reg" class="btn btn-default btn-lg btn-block" role="button">注 册</a>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <p class="help-block text-center"><a href="{:U('reg')}">注册</a> | <a href="{:U('forgot_password')}">忘记密码</a></p>
                     </div>
                 </div>
             </form>
@@ -60,9 +83,5 @@
     </div>
 </div>
 
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="{$Think.config.DOMAIN.PUBLIC}bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -5,8 +5,62 @@ class AccountController extends Controller {
     //判断是否登陆
     public function is_login(){
         if($_SESSION['account']['is_login'] !== true){
-            $this->error('未登录',C('DOMAIN.WWW').'?m=Home&c=Login&a=index');
+            $this-> account_unset_session();
+            return false;
         }
+        return true;
+    }
+    //set account session
+    public function account_set_session($account_id){
+        $this-> account_unset_session();
+        $account_id = intval($account_id);
+        if(!$account_id){
+            return false;
+        }
+        $info_sql = "SELECT `id`,`email` FROM `account` WHERE `id` = {$account_id} AND `status` = 3";
+        $account_info = D()->query($info_sql);
+        if(!$account_info){
+            return false;
+        }
+        $_SESSION['account'] = $account_info[0];
+        $_SESSION['account']['is_login'] = true;
+        return true;
+    }
+    public function account_unset_session(){
+        unset($_SESSION['account']);
+    }
+    /*
+     *  验证登陆信息是否有效
+     *
+     *  params:
+            $email = ''
+            $password = ''
+     *
+     *  return:
+            array(
+                'errno' => 0,   // 0:成功 1:账号为空 2:密码为空 3:没有这个账号 4:密码错误
+                'account_info' => array(),  //账号信息
+            )
+     */
+    public function check_login_info($email, $password){
+        $email = $email ? $email : '';
+        $password = $password ? $password : '';
+        if($email == ''){
+            return array('errno' => 1);
+        }
+        if($password == ''){
+            return array('errno' => 2);
+        }
+        $sql = "SELECT `id`,`email`,`password` FROM `account` WHERE `email` = '{$email}' AND `status` = 3";
+        $res = D()->query($sql);
+        if(!$res){
+            return array('errno' => 3);
+        }
+        $account_info = $res[0];
+        if($account_info['password'] !== md5(md5($password,true).sha1($password,true))){
+            return array('errno' => 4);
+        }
+        return array('errno' => 0, 'account_info' => $account_info);
     }
     /*
      *  验证注册信息是否有效
@@ -20,7 +74,7 @@ class AccountController extends Controller {
             array(
                 'errno' => 0,                   // 0合法 !0不合法
                 'msg'   => array(
-                    'email'             => 0,   // 0合法 1空 2格式错误
+                    'email'             => 0,   // 0合法 1空 2格式错误 3已被注册
                     'password'          => 0,   // 0合法 1空 2格式错误 
                     'confirm_password'  => 0,   // 0合法 1空 2与password不同
                     'verify'            => 0,   // 0合法 1空 2长度错误 3错误
@@ -32,7 +86,7 @@ class AccountController extends Controller {
         $password = $password ? $password : '';
         $confirm_password = $confirm_password ? $confirm_password : '';
         $verify = $verify ? $verify : '';
-        //判断email（0合法 1空 2格式错误 3数据库已存在）
+        //判断email（0合法 1空 2格式错误 3已被注册）
         $email_errno = 0;
         if($email == ''){
             $email_errno = 1;
@@ -123,7 +177,7 @@ class AccountController extends Controller {
             $ipnum += $ip[$i] * pow(256, $i); 
         }
 
-        $sql = "INSERT INTO `account` (`email`,`password`,`reg_time`,`reg_ip`) VALUES ('{$email}','{$password}','{$time}','{$ipnum}')";
+        $sql = "INSERT INTO `account` (`email`,`password`,`reg_time`,`reg_ip`,`status`) VALUES ('{$email}','{$password}','{$time}','{$ipnum}',3)";
         $res = D()->execute($sql);
         if($res !== 1){
             return false;
