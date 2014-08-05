@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bootstrap 101 Template</title>
+
+<link href="{:C('DOMAIN.PUBLIC')}bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+<script src="{:C('DOMAIN.PUBLIC')}common/js//html5shiv.min.js"></script>
+<script src="{:C('DOMAIN.PUBLIC')}common/js/respond.min.js"></script>
+<![endif]-->
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="{:C('DOMAIN.PUBLIC')}common/js/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="{:C('DOMAIN.PUBLIC')}bootstrap/js/bootstrap.min.js"></script>
+
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=163a80ecb70f430a8cf1f2d6cc71dea4"></script>
+
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="input-group">
+            <input id="address" type="text" class="form-control" value="北京市">
+            <span class="input-group-btn">
+                <button class="btn btn-default" type="button" onclick="search()">按地址搜索</button>
+            </span>
+        </div>
+        <div class="input-group" style="display:none;">
+            <input id="sel_lat" type="text" value="" readonly />
+            <input id="sel_lng" type="text" value="" readonly />
+            <input id="sel_province" type="text" value="" readonly />
+            <input id="sel_city" type="text" value="" readonly />
+            <input id="sel_district" type="text" value="" readonly />
+            <input id="sel_street" type="text" value="" readonly />
+            <input id="sel_street_number" type="text" value="" readonly />
+            <input id="sel_business" type="text" value="" readonly />
+        </div>
+    </div>
+    <div id="baidu_map" class="row" style="position:absolute;height:100%;width:100%;"></div>
+</div>
+
+</body>
+</html>
+<script type="text/javascript">
+var map = new BMap.Map("baidu_map");            // 创建Map实例
+var myGeo = new BMap.Geocoder();
+map.enableScrollWheelZoom();    //启用滚轮放大缩小
+var marker;
+
+function get_address(lat,lng){
+    $("#sel_lat").val(lat);
+    $("#sel_lng").val(lng);
+    $.ajax({  
+        type        : "get",  
+        asynci      : false,  
+        url         : "http://api.map.baidu.com/geocoder/v2/?ak=163a80ecb70f430a8cf1f2d6cc71dea4&location="+lat+","+lng+"&output=json&pois=0&callback=?",
+        dataType    : "jsonp",//数据类型为jsonp  
+        jsonp       : "jsonpCallback",//服务端用于接收callback调用的function名的参数  
+        success     : function(msg){
+            var province        = msg.result.addressComponent.province;         //省份
+            var city            = msg.result.addressComponent.city;             //市
+            var district        = msg.result.addressComponent.district;         //区、县
+            var street          = msg.result.addressComponent.street;           //街道
+            var street_number   = msg.result.addressComponent.street_number;    //街道号
+            var business        = msg.result.business;         //商区（附近）
+            var address         = province + city + district + street + street_number;
+            if(business != ''){
+                address += ' ('+business+')'
+            }
+            $("#sel_province").val(province);
+            $("#sel_city").val(city);
+            $("#sel_district").val(district);
+            $("#sel_street").val(street);
+            $("#sel_street_number").val(street_number);
+            $("#sel_business").val(business);
+            $("#address").val(address);
+        },  
+    });   
+
+}
+function marker_op(point){
+    map.removeOverlay(marker);
+    marker = new BMap.Marker(point);
+    marker.enableDragging();    //可拖拽
+    map.addOverlay(marker); 
+    get_address(point.lat,point.lng);
+    //监听覆盖物拖动事件
+    marker.addEventListener("dragend",function(e){
+        get_address(e.point.lat,e.point.lng);
+    });
+}
+
+//监听地图点击事件
+map.addEventListener("click", function(e){
+    marker_op(e.point);
+});
+
+function search(){
+    var address = $("#address").val();
+    myGeo.getPoint(address, function(point){
+        if(point){
+            map.centerAndZoom(point, 13);
+            marker_op(point);
+        }else{
+            alert('地址无法解析');
+        }
+    });
+}
+search();
+</script>
+
