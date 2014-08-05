@@ -14,12 +14,13 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                    <th>#</th>
-                    <th>店铺名称</th>
-                    <th>添加时间</th>
-                    <th>状态</th>
-                    <th>操作
-                    </th>
+                        <th>#</th>
+                        <th>店铺名称</th>
+                        <th>联系电话</th>
+                        <th>所在地址</th>
+                        <th>添加时间</th>
+                        <th>状态</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -27,39 +28,31 @@
                     <tr>
                         <td>{$vo.id}</td>
                         <td>{$vo.name}</td>
+                        <td>
+                            <if condition="$vo['tel']">{$vo.tel}<else/>无</if>
+                        </td>
+                        <td>{$vo.city}{$vo.district}{$vo.street}</td>
                         <td>{$vo.add_time|date="Y-m-d",###}</td>
                         <td>
-                            <switch name="$vo['status']">
-                            <case value="3">开启</case> 
-                            <case value="2">关闭</case> 
-                            <default/>异常
+                            <switch name="vo.status">
+                            <case value="3">
+                                <span class="text-success">开启</span>
+                            </case> 
+                            <case value="2">
+                                <span class="text-warning">关闭</span>
+                            </case> 
+                            <default/>
+                                <span class="text-danger">异常</span>
                             </switch>
                         </td>
                         <td>
-
+                          <a href="{:U('edit')}&id={$vo.id}">修改</a>
                         </td>
                     </tr>
                     </volist>
-                    <tr>
-                    <td>1</td>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                    </tr>
-                    <tr>
-                    <td>2</td>
-                    <td>Jacob</td>
-                    <td>T321321321321321312321321hornton</td>
-                    <td>@fat</td>
-                    </tr>
-                    <tr>
-                    <td>3</td>
-                    <td>Larry</td>
-                    <td>the Bird</td>
-                    <td>@twitter</td>
-                    </tr>
                 </tbody>
             </table>
         </div>
+        <div class="panel-footer text-center">{$page}</div>
     </div>
 </block>

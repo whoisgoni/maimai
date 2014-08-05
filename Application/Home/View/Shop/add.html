@@ -1,23 +1,50 @@
 <extend name="Common:base" />
 <block name="script">
-    <!-- jqueryui --> 
-    <script type="text/javascript" src="{:C('DOMAIN.PUBLIC')}jquery-ui-1.9.2.custom/js/jquery-ui-1.9.2.custom.min.js"></script>
-    <script type="text/javascript" src="{:C('DOMAIN.PUBLIC')}jquery-ui-1.9.2.custom/development-bundle/ui/i18n/jquery.ui.datepicker-zh-CN.js"></script>
-    <link rel="stylesheet" href="{:C('DOMAIN.PUBLIC')}jquery-ui-1.9.2.custom/development-bundle/themes/base/jquery.ui.all.css">
-    <!-- /jqueryui -->
-    <!-- fileupload -->          
-    <script src="{:C('DOMAIN.PUBLIC')}fileupload/js/vendor/jquery.ui.widget.js"></script>
-    <script src="{:C('DOMAIN.PUBLIC')}fileupload/js/jquery.iframe-transport.js"></script>
-    <script src="{:C('DOMAIN.PUBLIC')}fileupload/js/jquery.fileupload.js"></script>
-    <!-- /fileupload -->
+    <include file="include_jsfile_jqueryui,Common/include_jsfile_fileupload" />
     <script>
+    function ajax_submit_pre(msg){
+        if(msg.errno == 9999){
+            var jump_url = "{:U('Login/index')}";
+            $("#msg_modal").find(".modal-title").html("操作失败");
+            $("#msg_modal").find(".modal-body").html('<p>登录超时或未登录，3秒后跳转至登录页面...</p>');
+            $("#msg_modal").find(".modal-footer").html('<a class="btn btn-primary" href="'+jump_url+'">重新登录</a>');
+            $('#msg_modal').modal('show');
+            setTimeout("location.href='"+jump_url+"'",3000);
+            return false;
+        }
+        return true;
+    }
     $(function() {
+        $("form").submit(function(){
+            $("#msg_modal").find(".modal-title").html("操作中...");
+            $("#msg_modal").find(".modal-body").html('<p>数据处理中，请稍后...</p>');
+            $("#msg_modal").find(".modal-footer").html('');
+            $('#msg_modal').modal('show');
+            $.post($(this).attr("action"), $(this).serialize(), success, "json");
+            return false;
+            function success(msg){
+                if(ajax_submit_pre(msg) == false){
+                    return false;
+                }
+                if(msg.errno !=0){
+                    $("#msg_modal").find(".modal-title").html("操作失败");
+                    $("#msg_modal").find(".modal-body").html('<p>' + msg.errmsg + '</p>');
+                    $("#msg_modal").find(".modal-footer").html('<button type="button" class="btn btn-default" data-dismiss="modal">关闭窗口</button>');
+                    $('#msg_modal').modal('show');
+                    return false;
+                }
+                $("#msg_modal").find(".modal-title").html("操作成功");
+                $("#msg_modal").find(".modal-body").html('<p>店铺添加成功！</p>');
+                $("#msg_modal").find(".modal-footer").html('<a class="btn btn-primary" href="{:U(\'add\')}">再次添加</a><a class="btn btn-primary" href="{:U(\'index\')}">返回列表</a>');
+                $('#msg_modal').modal('show');
+            }
+        });
         $('#updimg').fileupload({
             url : "{:U('upload')}",
             dataType : 'json',
             progressall: function (e, data) {
-                var progress = parseInt(data.loaded / data.total * 100, 10);
-                $("#updimg_msg").text(progress + '%');
+                //var progress = parseInt(data.loaded / data.total * 100, 10);
+                //$("#updimg_msg").text(progress + '%');
             },
             done: function (e, data) {
                 if(data.result.errno == 0){
@@ -27,7 +54,7 @@
                     html    +=     '<button type="button" class="close" data-dismiss="alert" style="margin:-5px -2px 0 5px;">';
                     html    +=         '<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>';
                     html    +=     '</button>';
-                    html    +=     '<img src="'+src+'" style="height:100px;"><input name="img[]" type="hidden" value="'+value+'">';
+                    html    +=     '<p><img src="'+src+'" style="height:100px;"><input name="img[]" type="hidden" value="'+value+'"></p>';
                     html    += '</div>';
                     $("#updimg_box").append(html);
                 }
@@ -38,6 +65,47 @@
             }
         });
     });
+    function baidu_map(){
+        $("#msg_modal").find(".modal-title").html("baidu地图定位");
+        $("#msg_modal").find(".modal-body").html('<iframe id="baidu_map_iframe" src="{:U(\'Common/baidu_map\')}" style="width:100%;height:400px;"></iframe>');
+        $("#msg_modal").find(".modal-footer").html('<button type="button" class="btn btn-default" data-dismiss="modal">关闭窗口</button><button class="btn btn-primary" onclick="sel_baidu_map();">确定</button>');
+        $('#msg_modal').modal('show');
+    }
+    function sel_baidu_map(){
+        var bmic            = $("#baidu_map_iframe").contents();
+        var lat             = bmic.find("#sel_lat").val();
+        var lng             = bmic.find("#sel_lng").val();
+        var province        = bmic.find("#sel_province").val();
+        var city            = bmic.find("#sel_city").val();
+        var district        = bmic.find("#sel_district").val();
+        var street          = bmic.find("#sel_street").val();
+        var street_number   = bmic.find("#sel_street_number").val();
+        var business        = bmic.find("#sel_business").val();
+        var address         = province + city + district + street + street_number;
+        if(business != ''){
+            address += '&nbsp;('+business+')'
+        }
+        var img_src = 'http://api.map.baidu.com/staticimage?center='+lng+','+lat+'&width=600&height=400&zoom=19&markers='+lng+','+lat;
+        var html =  '<div class="img-thumbnail">';
+        html    +=      '<button type="button" class="close" data-dismiss="alert" style="margin:-5px -2px 0 5px;">';
+        html    +=          '<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>';
+        html    +=      '</button>';
+        html    +=      '<p>';
+        html    +=          '<input type="text" class="form-control" value="'+address+'">';
+        html    +=          '<input name="lng" type="hidden" value="'+lng+'">';
+        html    +=          '<input name="lat" type="hidden" value="'+lat+'">';
+        html    +=          '<input name="province" type="hidden" value="'+province+'">';
+        html    +=          '<input name="city" type="hidden" value="'+city+'">';
+        html    +=          '<input name="district" type="hidden" value="'+district+'">';
+        html    +=          '<input name="street" type="hidden" value="'+street+'">';
+        html    +=          '<input name="street_number" type="hidden" value="'+street_number+'">';
+        html    +=          '<input name="business" type="hidden" value="'+business+'">';
+        html    +=      '</p>';
+        html    +=      '<p><img src="'+img_src+'" style="height:200px;"><p>';
+        html    +=  '</div>';
+        $("#baidu_map_val").html(html);
+        $('#msg_modal').modal('hide');
+    }
     </script>
 </block>
 <block name="location">
@@ -46,14 +114,13 @@
         <li><a href="{:U('Index/index')}">首页</a></li>
         <li><a href="{:U('index')}">店铺列表</a></li>
         <li class="active">添加店铺</li>
-        <a class="btn btn-primary btn-xs" href="{:U('add')}" role="button" style="float:right;">添加新店铺</a>
     </ol>
 </block>
 <block name="main">
     <div class="panel panel-default">
         <div class="panel-heading"></div>
         <div class="panel-body">
-            <form class="form-horizontal" role="form">
+            <form class="form-horizontal" role="form" action="{:U('add')}">
                 <div class="form-group">
                     <label class="col-md-2 control-label">店铺名称</label>
                     <div class="col-md-10">
@@ -64,6 +131,24 @@
                     <label class="col-md-2 control-label">店铺描述</label>
                     <div class="col-md-10">
                         <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">店铺电话</label>
+                    <div class="col-md-10">
+                        <input name="tel" type="text" class="form-control" >
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">店铺地址</label>
+                    <div class="col-md-10">
+                        <div style="margin-bottom:10px;">
+                            <button type="button" class="btn btn-default btn-sm" onclick="baidu_map()">
+                                <span class="glyphicon glyphicon-pushpin"></span>
+                                地图定位
+                            </button>
+                        </div>
+                        <div id="baidu_map_val"></div>
                     </div>
                 </div>
                 <div class="form-group">
